@@ -1,8 +1,12 @@
+import 'package:chatbot/core/widgets/toasts.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../core/services/getx_chat.dart';
 import '../../../../../core/services/shared.dart';
 import '../../../../../core/widgets/basics.dart';
+import '../../../api/llm_service.dart';
+import '../../../api/service_gemini.dart';
 import '../../../service/secret_service.dart';
 import '../../../service/shared_preferences_service.dart';
 
@@ -14,24 +18,33 @@ class LLMSettingsSheetView extends StatefulWidget {
 }
 
 class _LLMSettingsSheetViewState extends State<LLMSettingsSheetView> {
+  final chatProvider = Get.find<ProviderChat>();
   final List<String> llmModels = [
     "Default",
-    "gpt-4.1",
-    "gpt-4o",
-    "gpt-4-mini",
-    "gpt-3.5-turbo",
-    "llama-3-70b",
-    "llama-3-8b",
+    //"gpt-4.1",
+    //"gpt-4o",
+    //"gpt-4-mini",
+    //"gpt-3.5-turbo",
+    "gemini-2.5-pro",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
+    //"llama-3-70b",
+    //"llama-3-8b",
   ];
   late RxString selectedModel;
   late TextEditingController apiKeyController;
+
+  bool isVerifying = false;
 
   @override
   void initState() {
     super.initState();
 
     // load from shared (or fallback)
-    selectedModel = (shared.llmModel.isNotEmpty ? shared.llmModel : llmModels.first).obs;
+    selectedModel =
+        (shared.llmModel.isNotEmpty ? shared.llmModel : llmModels.first).obs;
     apiKeyController = TextEditingController(text: shared.apiKey ?? "");
   }
 
@@ -43,25 +56,29 @@ class _LLMSettingsSheetViewState extends State<LLMSettingsSheetView> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(12),
-      child: Obx(() { return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          simpleAppBar(context, text: ''), // your cancel/close app bar
-          const SizedBox(height: 15),
-          _buildModelSelector(context),
-          const SizedBox(height: 20),
-          if(selectedModel.value!="Default")
-          _buildApiKeyInput(context),
-          if(selectedModel.value!="Default")
-            const SizedBox(height: 25),
-          _buildSaveResetButtons(context),
-          const SizedBox(height: 15),
-        ],
-      );}),
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(12),
+        child: Obx(() {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              simpleAppBar(context, text: ''), // your cancel/close app bar
+              const SizedBox(height: 15),
+              _buildModelSelector(context),
+              const SizedBox(height: 20),
+              if (selectedModel.value != "Default") _buildApiKeyInput(context),
+              if (selectedModel.value != "Default") const SizedBox(height: 25),
+              _buildSaveResetButtons(context),
+              const SizedBox(height: 15),
+            ],
+          );
+        }),
+      ),
     );
   }
+
 
   Widget _buildModelSelector(BuildContext context) => _buildSection(
     context: context,
@@ -69,19 +86,17 @@ class _LLMSettingsSheetViewState extends State<LLMSettingsSheetView> {
     icon: Icons.memory_outlined,
     children: [
       Obx(
-            () => DropdownButtonFormField<String>(
+        () => DropdownButtonFormField<String>(
           value: selectedModel.value,
           decoration: InputDecoration(
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          items: llmModels
-              .map((model) => DropdownMenuItem(
-            value: model,
-            child: Text(model),
-          ))
+          items: llmModels.map(
+                (model) => DropdownMenuItem(value: model, child: Text(model)),
+              )
               .toList(),
           onChanged: (val) {
-            if (val != null) selectedModel.value = val;
+            if (val != null) selectedModel.value = val ;
           },
         ),
       ),
@@ -100,7 +115,10 @@ class _LLMSettingsSheetViewState extends State<LLMSettingsSheetView> {
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+            borderSide: BorderSide(
+              color: Theme.of(context).primaryColor,
+              width: 2,
+            ),
           ),
         ),
         obscureText: true, // hide API key by default
@@ -120,7 +138,16 @@ class _LLMSettingsSheetViewState extends State<LLMSettingsSheetView> {
       Expanded(
         child: FilledButton(
           onPressed: _saveSettings,
-          child: const Text("Save"),
+          child: isVerifying
+              ? const SizedBox(
+                  width: 12,
+                  height: 12,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white, // adjust color if needed
+                  ),
+                )
+              : const Text("Save"),
         ),
       ),
     ],
@@ -131,15 +158,46 @@ class _LLMSettingsSheetViewState extends State<LLMSettingsSheetView> {
     apiKeyController.clear();
   }
 
-  void _saveSettings() {
-    print("Model: ${selectedModel.value}");
-    print("API Key: ${apiKeyController.text}");
+  void _saveSettings() async {
+    if (!isVerifying) {
+      setState(() {
+        isVerifying = true;
+      });
+      print("Model: ${selectedModel.value}");
+      print("API Key: ${apiKeyController.text}");
+      //lets verify api key
+      bool isVerified = false;
+      if (selectedModel.value.startsWith("gemini")) {
+        LlmService llm = GeminiService(
+          model: selectedModel.value,
+          otherApiKey: apiKeyController.text,
+        );
+        String? result = await llm.generateResponse(prompt: "hello");
+        print(
+          "result is ---------------------------------------------------------------------------------",
+        );
+        print(result);
+        isVerified = result != null;
+        print("result:$result");
+      } else if (selectedModel.value.trim().toLowerCase()=="default") {
+        isVerified = true;
+      }
 
-    SharedPrefFineTuningService.saveLLMModel(selectedModel.value);
-    SecureStorageService().saveApiKey(apiKeyController.text);
+      if (isVerified) {
+        //lets save the selected options
+        SharedPrefFineTuningService.saveLLMModel(selectedModel.value);
+        SecureStorageService().saveApiKey(apiKeyController.text);
+        shared.loadFineTuningSettings();
+        chatProvider.changeLLM(selectedModel.value,apiKeyController.text);
+        Get.back();
+      } else {
+        Toast.showError("Invalid api key", context);
+      }
 
-    shared.loadFineTuningSettings();
-    Get.back();
+      setState(() {
+        isVerifying = false;
+      });
+    }
   }
 
   Widget _buildSection({
@@ -159,10 +217,7 @@ class _LLMSettingsSheetViewState extends State<LLMSettingsSheetView> {
             children: [
               Icon(icon, color: colorScheme.primary, size: 22),
               const SizedBox(width: 10),
-              Text(
-                title,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 10),

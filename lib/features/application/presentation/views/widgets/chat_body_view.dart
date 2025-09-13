@@ -1,6 +1,7 @@
 import 'package:chatbot/core/widgets/toasts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:hugeicons_pro/hugeicons.dart';
@@ -84,28 +85,65 @@ class _ChatBodyViewState extends State<ChatBodyView> {
                 },
 
                 child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  constraints: const BoxConstraints(maxWidth: 250),
-                  decoration: BoxDecoration(
-                    color: msg.isUser
-                        ? (Theme.brightnessOf(context) == Brightness.light
-                        ? Theme.of(context).colorScheme.primary
-                        : const Color(0xFFAA6A25))
-                        : (Theme.brightnessOf(context) == Brightness.light
-                        ? Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5)
-                        : const Color(0xD3232323)),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    msg.content,
-                    style: TextStyle(
-                      fontSize: 16,
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width*0.7),
+                    decoration: BoxDecoration(
                       color: msg.isUser
-                          ? Colors.white
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                          ? (Theme.brightnessOf(context) == Brightness.light
+                          ? Theme.of(context).colorScheme.primary
+                          : const Color(0xFFAA6A25))
+                          : (Theme.brightnessOf(context) == Brightness.light
+                          ? Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5)
+                          : const Color(0xD3232323)),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                  ),
+                    child: msg.isUser? Text(
+                      msg.content,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: msg.isUser
+                            ? Colors.white
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ):MarkdownBody(
+                      data: msg.content,
+                      styleSheet: MarkdownStyleSheet(
+                        p: TextStyle(
+                          fontSize: 16,
+                          color: msg.isUser
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        strong: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: msg.isUser
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        em: TextStyle(
+                          fontStyle: FontStyle.italic,
+                          color: msg.isUser
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        h1: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: msg.isUser
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        h2: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: msg.isUser
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        // Add more styles if needed
+                      ),
+                    )
                 ),
               ),
             );

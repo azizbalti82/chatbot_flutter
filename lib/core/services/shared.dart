@@ -30,7 +30,6 @@ class shared{
     final ProviderChat chatProvider = Get.find<ProviderChat>();
     conversations = _getSortedConversations();
     chatProvider.allConversations.value = conversations;
-
   }
 
   static List<Conversation> _getSortedConversations() {

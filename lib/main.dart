@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -21,6 +22,9 @@ Future<void> main() async {
   //init hive:
   await HiveService.initHive();
 
+  // Load the .env file first
+  await dotenv.load(fileName: "assets/.env");
+
   Get.put(ScrollManager());
   Get.put(ProviderNavigation());
   Get.put(ProviderChat());
@@ -28,16 +32,12 @@ Future<void> main() async {
 
 
   //load settings
-  shared.loadFineTuningSettings();
+  await shared.loadFineTuningSettings();
   shared.loadConversation();
-
-  print("conversations : -------------------------------------------------------------------------------------");
-  print(shared.conversations);
   //start a conversation
   final providerChat = Get.find<ProviderChat>();
   providerChat.startConversation();
-
-
+  providerChat.changeLLM(shared.llmModel,shared.apiKey);
 
   runApp(const App());
 }
