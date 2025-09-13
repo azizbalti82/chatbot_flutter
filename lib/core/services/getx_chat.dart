@@ -1,39 +1,41 @@
 import 'dart:math';
+import 'package:chatbot/core/services/shared.dart';
 import 'package:get/get.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../features/application/presentation/data/conversation_model.dart';
 import '../../features/application/presentation/data/message_model.dart';
+import '../../features/application/presentation/service/HiveService.dart';
 
 class ProviderChat extends GetxController {
   // Current active conversation
   final Rx<Conversation> currentConversation = Conversation(id: "").obs;
+  final RxList<Conversation> allConversations = <Conversation>[].obs;
   final RxString pendingMessage = "".obs;
   final RxBool waitingForAnswer = false.obs;
 
 
-  /// todo use real id generator so the conversations dont get fucked up
   // Create a new conversation
-  void startConversation(String id) {
-    currentConversation.value = Conversation(id: id);
+  void startConversation() {
+    currentConversation.value = Conversation(id: _generateUniqueId());
   }
-
-  // Send a message from the user
   Future<void> sendMessage(String text) async {
-    final msg = Message(
-      id: Random().nextInt(100000).toString(),
-      content: text,
-      isUser: true,
-    );
+    final msg = Message(id: _generateUniqueId(), content: text, isUser: true,);
+    /// if this conversation is empty that means its not saved in hive
+    await HiveService.saveConversation(currentConversation.value);
+    /// Add a message and save to Hive
     currentConversation.value.messages.add(msg);
-
-    // Simulate chatbot response
+    //await HiveService.addMessage(currentConversation.value.id, msg);
+    shared.loadConversation();
+    /// Simulate chatbot response
     waitingForAnswer.value = true;
-    await simulateBotResponse(text);
+    await getAiResponseMessage(text);
     waitingForAnswer.value = false;
   }
 
-  Future<void> simulateBotResponse(String userMessage) async {
+
+  Future<void> getAiResponseMessage(String userMessage) async {
     const totalDelay = Duration(seconds: 5);
     const interval = Duration(milliseconds: 100);
     int elapsed = 0;
@@ -49,19 +51,21 @@ class ProviderChat extends GetxController {
     if (!waitingForAnswer.value) return;
 
     final botMessage = Message(
-      id: Random().nextInt(100000).toString(),
+      id: _generateUniqueId(),
       content: "Bot response to: $userMessage",
       isUser: false,
     );
 
+    /// if this conversation is empty that means its not saved in hive
+    await HiveService.saveConversation(currentConversation.value);
+    /// Add a message and save to Hive
     currentConversation.value.messages.add(botMessage);
+    //await HiveService.addMessage(currentConversation.value.id, botMessage);
     waitingForAnswer.value = false;
   }
 
-
-
-  // Clear conversation
-  void clearConversation() {
-    currentConversation.value.messages.clear();
+  String _generateUniqueId() {
+    final Uuid _uuid = Uuid();
+    return _uuid.v4();
   }
 }

@@ -1,6 +1,9 @@
+import 'package:chatbot/core/widgets/toasts.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:hugeicons_pro/hugeicons.dart';
 
 import '../../../../../core/services/getx_chat.dart';
 import '../../../../../core/services/getx_navigation.dart';
@@ -19,23 +22,9 @@ class _ChatBodyViewState extends State<ChatBodyView> {
   final ProviderChat chatProvider = Get.find<ProviderChat>();
   final ScrollController _scrollController = ScrollController();
 
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    // scroll whenever messages change
-    ever(chatProvider.currentConversation.value.messages, (_) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-    });
   }
 
   @override
@@ -50,6 +39,7 @@ class _ChatBodyViewState extends State<ChatBodyView> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       color: Theme.of(context).scaffoldBackgroundColor,
       child: Obx(() {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
         var messages = chatProvider.currentConversation.value.messages;
         bool isEmptyConversation = messages.isEmpty;
         return isEmptyConversation
@@ -81,26 +71,40 @@ class _ChatBodyViewState extends State<ChatBodyView> {
             final msg = messages[index];
             return Align(
               alignment: msg.isUser ? Alignment.centerRight : Alignment.centerLeft,
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                constraints: const BoxConstraints(maxWidth: 250),
-                decoration: BoxDecoration(
-                  color: msg.isUser
-                      ? (Theme.brightnessOf(context) == Brightness.light
-                      ? Theme.of(context).colorScheme.primary
-                      : const Color(0xFFAA6A25))
-                      : (Theme.brightnessOf(context) == Brightness.light
-                    ? Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5)
-                    : const Color(0xFF323232)),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  msg.content,
-                  style: TextStyle(
+              child: InkWell(
+                onLongPress: () {
+                  // copy message to clipboard
+                  Clipboard.setData(ClipboardData(text: msg.content));
+                  // show toast
+                  Toast.showSuccess(
+                    "Message copied to clipboard",
+                    context,
+                    icon: HugeIconsSolid.taskDaily01,
+                  );
+                },
+
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  constraints: const BoxConstraints(maxWidth: 250),
+                  decoration: BoxDecoration(
                     color: msg.isUser
-                        ? Colors.white
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ? (Theme.brightnessOf(context) == Brightness.light
+                        ? Theme.of(context).colorScheme.primary
+                        : const Color(0xFFAA6A25))
+                        : (Theme.brightnessOf(context) == Brightness.light
+                        ? Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5)
+                        : const Color(0xD3232323)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    msg.content,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: msg.isUser
+                          ? Colors.white
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ),
@@ -110,5 +114,13 @@ class _ChatBodyViewState extends State<ChatBodyView> {
         ;
       }),
     );
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(
+        _scrollController.position.maxScrollExtent,
+      );
+    }
   }
 }

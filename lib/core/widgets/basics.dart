@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:hugeicons_pro/hugeicons.dart';
 
 Widget simpleAppBarWidget(BuildContext context, {required Widget child}) {
   final colorScheme = Theme.of(context).colorScheme;
@@ -47,11 +48,8 @@ Widget simpleAppBar(BuildContext context, {required String text}) {
         ),
         child: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: SvgPicture.asset(
-            "assets/icons/back.svg",
-            width: 20,
-            color: colorScheme.onSurface, // textColor equivalent
-          ),
+          icon: Icon(HugeIconsStroke.cancel01,size: 22,),
+
         ),
       ),
       Flexible(

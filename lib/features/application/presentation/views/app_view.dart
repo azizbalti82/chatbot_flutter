@@ -10,10 +10,16 @@ import 'package:hugeicons_pro/hugeicons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
+import '../../../../core/services/getx_all.dart';
+import '../../../../core/services/getx_chat.dart';
 import '../../../../core/services/getx_navigation.dart';
 import '../../../../core/services/getx_scroll_manager.dart';
+import '../../../../core/services/shared.dart';
 import '../../../../core/utils/assets_data.dart';
 import 'package:get/get.dart';
+
+import '../../../../core/utils/tools.dart';
+import '../../../llm model/presentation/views/widgets/model_chooser_dialogue.dart';
 
 class AppView extends StatefulWidget {
   const AppView({super.key});
@@ -24,6 +30,9 @@ class AppView extends StatefulWidget {
 
 class _ChatViewState extends State<AppView> {
   final scrollManager = Get.find<ScrollManager>();
+  final chatProvider = Get.find<ProviderChat>();
+  final allProvider = Get.find<ProviderAll>();
+
 
   /// If _selectedContent is even, a page without scrolling
   /// and with menu opening by the fling gesture is shown.
@@ -72,7 +81,8 @@ class _ChatViewState extends State<AppView> {
               : SizedBox.shrink(key: ValueKey('fab_hidden')),
         ),
       ),
-      body: DrawerMenu(
+      body:  Obx(
+      () => DrawerMenu(
         controller: provider.drawerMenuController,
         menu: _buildMenu(),
         body: Column(
@@ -84,41 +94,71 @@ class _ChatViewState extends State<AppView> {
         rightMargin: _rightMargin,
         menuOverlapWidth: _menuOverlapWidth,
         shadowWidth: 10,
-        shadowColor: const Color(0x11000000),
+        shadowColor: Theme.of(context).colorScheme.onBackground,
+        scrimBlurEffect: true,
         animationDuration: Duration(milliseconds: 500),
         dragMode: _selectedContent % 2 != 0
             ? DragMode.always
             : DragMode.onlyFling,
-      ),
+      )),
     );
   }
 
   Widget _buildMenu() {
-    final listView = ListView.builder(
-      itemCount: 20, // Add itemCount to prevent infinite items
-      itemBuilder: (context, index) {
-        return InkWell(
-          borderRadius: BorderRadius.circular(6),
-          child: Container(
-            margin: EdgeInsets.only(bottom: 2),
-            padding: EdgeInsets.symmetric(vertical: 12,horizontal: 5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+    Widget listView = Center(child: Text("Empty",style: TextStyle(fontSize: 18),));
+    if(chatProvider.allConversations.isNotEmpty){
+      listView = ListView.builder(
+        itemCount:chatProvider.allConversations.length,
+        itemBuilder: (context, index) {
+          // Get the conversation metadata
+          final conversation = chatProvider.allConversations[index]; // Message list is empty
+          return InkWell(
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 2),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text("Content $index",overflow:TextOverflow.ellipsis,maxLines:1,style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 16),),
-                  Text("3 days ago",overflow:TextOverflow.ellipsis,maxLines:1,style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 14,color: Theme.of(context).hintColor),)
+                  Text(
+                    (conversation.messages.isEmpty)?
+                    'N/A': conversation.messages.last.content,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: Theme
+                        .of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(fontSize: 16),
+                  ),
+                  Text(
+                    (conversation.messages.isEmpty)?
+                        'N/A': timeAgo(conversation.messages.last.timestamp),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: Theme
+                        .of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(fontSize: 14, color: Theme
+                        .of(context)
+                        .hintColor),
+                  ),
                 ],
+              ),
             ),
-          ),
-          onTap: () {
-            provider.drawerMenuController.close();
-            setState(() {
-              _selectedContent = index;
-            });
-          },
-        );
-      },
-    );
+            onTap: () {
+              //load conversation
+              chatProvider.currentConversation.value = conversation;
+              chatProvider.pendingMessage.value = "";
+              chatProvider.waitingForAnswer.value = false;
+
+              provider.drawerMenuController.close();
+            },
+          );
+        },
+      );
+    }
 
     Widget menu = SafeArea(
       child: Material(
@@ -143,7 +183,14 @@ class _ChatViewState extends State<AppView> {
                 borderRadius: BorderRadius.circular(12),
                 onTap: (){
                   // change model
-
+                  showCupertinoModalBottomSheet(
+                    topRadius: const Radius.circular(25),
+                    context: context,
+                    backgroundColor: Theme.of(context).canvasColor,
+                    builder: (context) => Material(
+                      child: LLMSettingsSheetView(),
+                    ),
+                  );
                 },
                 child: Container(
                   padding: EdgeInsets.fromLTRB(12,5,0,5),
@@ -154,15 +201,15 @@ class _ChatViewState extends State<AppView> {
                   ),
                   child: Row(
                     children: [
-                      Expanded(child:Text("History",overflow:TextOverflow.ellipsis,style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 20),),),
+                      Expanded(child:Text(allProvider.model.value,overflow:TextOverflow.ellipsis,style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 20),),),
                       IconButton(onPressed: (){
-                        Get.bottomSheet(
-                          FineTuningLLMSheetView(), // ✅ must be an instance
-                          isScrollControlled: true,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                        showCupertinoModalBottomSheet(
+                          topRadius: const Radius.circular(25),
+                          context: context,
+                          backgroundColor: Theme.of(context).canvasColor,
+                          builder: (context) => Material(
+                            child: FineTuningLLMSheetView(),
                           ),
-                          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                         );
                       }, icon: Icon(HugeIconsStroke.settings04,size: 22,),)
                     ],
@@ -170,7 +217,6 @@ class _ChatViewState extends State<AppView> {
                 ),
               ),
               SizedBox(height: 15,),
-
             ],
           )
         ),

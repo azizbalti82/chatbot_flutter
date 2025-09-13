@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons_pro/hugeicons.dart';
 import 'package:toastification/toastification.dart';
 
 class Toast {
@@ -26,7 +27,7 @@ class Toast {
       alignment: Alignment.topCenter,
       animationDuration: const Duration(milliseconds: 500),
       icon: icon != null ? Icon(icon) : null,
-      showIcon: false,
+      showIcon: true,
       primaryColor: primaryColor,
       backgroundColor: backgroundColor,
       foregroundColor: Colors.black,
@@ -58,30 +59,30 @@ class Toast {
     );
   }
 
-  static void showError(String message, BuildContext context, {int autoCloseSeconds = 3}) {
+  static void showError(String message, BuildContext context, {int autoCloseSeconds = 3,IconData? icon}) {
     _showToast(
       message: message,
       context: context,
       primaryColor: Colors.red,
       backgroundColor: Colors.red.withOpacity(0.05),
       type: ToastificationType.error,
-      icon: Icons.warning_amber,
+      icon: icon ?? Icons.warning_amber,
       autoCloseSeconds: autoCloseSeconds,
     );
   }
 
-  static void showSuccess(String message, BuildContext context) {
+  static void showSuccess(String message, BuildContext context,{IconData? icon}) {
     _showToast(
       message: message,
       context: context,
       primaryColor: Colors.green,
       backgroundColor: Colors.green.withOpacity(0.05),
       type: ToastificationType.success,
-      icon: Icons.check,
+      icon: icon ?? Icons.check,
     );
   }
 
-  static void showMsg(String message, BuildContext context) {
+  static void showMsg(String message, BuildContext context,{IconData? icon}) {
     final accentColor = Theme.of(context).colorScheme.secondary;
 
     _showToast(
@@ -90,6 +91,7 @@ class Toast {
       primaryColor: accentColor,
       backgroundColor: accentColor.withOpacity(0.05),
       type: ToastificationType.info,
+      icon: icon
     );
   }
 
