@@ -1,0 +1,98 @@
+name: chatbot
+description: "simple chat bot with custom api key and custom personas"
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  intl: 0.20.2
+  flutter_svg: ^2.2.0
+  uuid: ^4.5.1
+  pull_down_button: ^0.10.2
+  device_info_plus: ^11.3.0
+  blur: ^4.0.0
+  restart_app: ^1.3.2
+  package_info_plus: ^8.3.0
+  smooth_page_indicator: ^1.2.1
+  percent_indicator: ^4.2.5
+  modal_bottom_sheet: ^3.0.0
+  toastification: ^2.3.0
+  top_modal_sheet: ^2.1.0
+  easy_url_launcher: ^0.0.7
+  shared_preferences: ^2.5.3
+  rename_app: ^1.6.5
+  shimmer: ^3.0.0
+  lottie: ^3.0.0
+  dio: ^5.4.0
+  flutter_native_splash: ^2.4.0
+  timeline_tile: ^2.0.0
+  get: ^4.7.2
+  flutter_tts: ^4.2.3
+  simple_animation_progress_bar: ^1.9.2
+  hugeicons_pro: ^0.0.2
+  forui: ^0.14.1
+  flutter_secure_storage: ^9.2.4
+  flutter_drawer_menu: ^0.1.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.14.3
+  #hive_generator: ^2.0.1
+  build_runner: ^2.4.6
+  flutter_lints: ^5.0.0
+
+dependency_overrides:
+  intl: ^0.19.0
+
+flutter_launcher_icons:
+  image_path: "assets/logo/logo.png"
+  min_sdk_android: 21
+  adaptive_icon_foreground: "assets/logo/logo.png"  # Path to foreground image
+  adaptive_icon_background: "#FFFFFF"
+  web:
+    generate: true
+    image_path: "assets/logo/logo.png"
+    background_color: "#FFFFFF"  # White background
+    theme_color: "#hexcode"
+  windows:
+    generate: true
+    image_path: "assets/logo/logo.png"
+    icon_size: 48
+  macos:
+    generate: true
+    image_path: "assets/logo/logo.png"
+  android:
+    generate: true
+    image_path: "assets/logo/logo.png"
+    color: "#FFFFFF"
+    background_color: "#FFFFFF"  # White background
+    icon_size: 144  # Adjust this for Android icons
+
+flutter_native_splash:
+  color: "#ffffff"
+  color_dark: "#000000" # optional: dark background color
+  image: assets/logo/logo.png
+  image_dark: assets/logo/logo.png # this is the dark mode image
+
+  android_12:
+    image: assets/logo/logo.png
+    image_dark: assets/logo/logo.png # dark mode image for Android 12+
+    icon_background_color: "#ffffff"
+    color: "#ffffff"
+    color_dark: "#000000" # optional: dark background color for Android 12
+
+
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/animation/
+    - assets/logo/
