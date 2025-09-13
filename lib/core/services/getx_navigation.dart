@@ -7,6 +7,8 @@ import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 class ProviderNavigation extends GetxController {
   final drawerMenuController = DrawerMenuController();
 
+
+
   toggleDrawer(){
     drawerMenuController.toggle(animated: true);
   }

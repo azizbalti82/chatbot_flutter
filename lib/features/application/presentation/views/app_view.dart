@@ -181,9 +181,9 @@ class _ChatViewState extends State<AppView> {
               SizedBox(height: 10,),
               InkWell(
                 borderRadius: BorderRadius.circular(12),
-                onTap: (){
+                onTap: () async{
                   // change model
-                  showCupertinoModalBottomSheet(
+                  await showCupertinoModalBottomSheet(
                     topRadius: const Radius.circular(25),
                     context: context,
                     backgroundColor: Theme.of(context).canvasColor,
@@ -191,6 +191,7 @@ class _ChatViewState extends State<AppView> {
                       child: LLMSettingsSheetView(),
                     ),
                   );
+                  provider.toggleDrawer();
                 },
                 child: Container(
                   padding: EdgeInsets.fromLTRB(12,5,0,5),
@@ -202,8 +203,8 @@ class _ChatViewState extends State<AppView> {
                   child: Row(
                     children: [
                       Expanded(child:Text(allProvider.model.value,overflow:TextOverflow.ellipsis,style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 20),),),
-                      IconButton(onPressed: (){
-                        showCupertinoModalBottomSheet(
+                      IconButton(onPressed: () async{
+                        await showCupertinoModalBottomSheet(
                           topRadius: const Radius.circular(25),
                           context: context,
                           backgroundColor: Theme.of(context).canvasColor,
@@ -211,6 +212,7 @@ class _ChatViewState extends State<AppView> {
                             child: FineTuningLLMSheetView(),
                           ),
                         );
+                        provider.toggleDrawer();
                       }, icon: Icon(HugeIconsStroke.settings04,size: 22,),)
                     ],
                   ),
