@@ -18,6 +18,7 @@ class ConversationAdapter extends TypeAdapter<Conversation> {
     };
     return Conversation(
       id: fields[0] as String,
+      summary: fields[2] as String,
       messages: (fields[1] as List?)?.cast<Message>(),
     );
   }
@@ -25,11 +26,13 @@ class ConversationAdapter extends TypeAdapter<Conversation> {
   @override
   void write(BinaryWriter writer, Conversation obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.messages);
+      ..write(obj.messages)
+      ..writeByte(2)
+      ..write(obj.summary);
   }
 
   @override

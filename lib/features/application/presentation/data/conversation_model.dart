@@ -13,8 +13,11 @@ class Conversation extends HiveObject {
   @HiveField(1)
   final List<Message> messages;
 
+  @HiveField(2)
+  final String summary; //for contextual memory
   Conversation({
     required this.id,
+    required this.summary,
     List<Message>? messages,
   }) : messages = messages ?? [];
 }
