@@ -5,10 +5,10 @@ import 'package:get/get.dart';
 import '../../../../../core/services/getx_chat.dart';
 import '../../../../../core/services/shared.dart';
 import '../../../../../core/widgets/basics.dart';
-import '../../../api/llm_service.dart';
-import '../../../api/service_gemini.dart';
-import '../../../service/secret_service.dart';
-import '../../../service/shared_preferences_service.dart';
+import '../../../domain/api/llm_service.dart';
+import '../../../domain/api/service_gemini.dart';
+import '../../../domain/service/secret_service.dart';
+import '../../../domain/service/shared_preferences_service.dart';
 
 class LLMSettingsSheetView extends StatefulWidget {
   const LLMSettingsSheetView({super.key});

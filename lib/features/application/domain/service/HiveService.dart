@@ -1,7 +1,7 @@
 import 'package:hive/hive.dart';
 
-import '../data/conversation_model.dart';
-import '../data/message_model.dart';
+import '../models/conversation_model.dart';
+import '../models/message_model.dart';
 import 'package:path_provider/path_provider.dart';
 
 

@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../../../core/services/shared.dart';
 import '../../../../../core/widgets/basics.dart';
-import '../../../service/shared_preferences_service.dart';
+import '../../../domain/service/shared_preferences_service.dart';
 
 class FineTuningLLMSheetView extends StatefulWidget {
   const FineTuningLLMSheetView({super.key});

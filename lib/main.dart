@@ -12,7 +12,7 @@ import 'core/services/getx_scroll_manager.dart';
 import 'core/services/shared.dart';
 import 'core/utils/constants.dart';
 import 'core/utils/theme_data.dart';
-import 'features/application/presentation/service/HiveService.dart';
+import 'features/application/domain/service/HiveService.dart';
 import 'features/application/presentation/views/app_view.dart';
 import 'features/application/presentation/views/widgets/system_wrapper_view.dart';
 

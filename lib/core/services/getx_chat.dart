@@ -6,11 +6,11 @@ import 'package:get/get.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../features/application/presentation/data/conversation_model.dart';
-import '../../features/application/presentation/data/message_model.dart';
-import '../../features/application/presentation/service/HiveService.dart';
-import '../../features/llm model/api/llm_service.dart';
-import '../../features/llm model/api/service_gemini.dart';
+import '../../features/application/domain/models/conversation_model.dart';
+import '../../features/application/domain/models/message_model.dart';
+import '../../features/application/domain/service/HiveService.dart';
+import '../../features/llm model/domain/api/llm_service.dart';
+import '../../features/llm model/domain/api/service_gemini.dart';
 
 class ProviderChat extends GetxController {
   // Current active conversation
@@ -42,14 +42,12 @@ class ProviderChat extends GetxController {
 
     /// if this conversation is empty that means its not saved in hive
     await HiveService.saveConversation(currentConversation.value);
-
     /// Add a message and save to Hive
     currentConversation.value.messages.add(msg);
-    //await HiveService.addMessage(currentConversation.value.id, msg);
     shared.loadConversation();
-
-    /// Simulate chatbot response
+    /// get chatbot response
     waitingForAnswer.value = true;
+    updateSummary(msg);
     final prompt = buildPrompt(
       role: shared.relationship,
       behaviors: shared.behavior,
@@ -114,39 +112,47 @@ class ProviderChat extends GetxController {
 
 
   /// Optimized summary updater
-  /*
-  Future<void> updateSummary({int maxRecent = 8, int summarizeDelta = 10, int recompressEvery = 4,}) async {
-    // If recent messages exceed buffer + delta → summarize delta
-    if (convo.recent.length > maxRecent + summarizeDelta) {
-      final int cutoff = convo.recent.length - maxRecent;
-      final toSummarize = convo.recent.sublist(0, cutoff);
 
-      // Build text block
-      final String deltaText = toSummarize
-          .map((m) => "${m.role}: ${m.text}")
-          .join("\n");
+  Future<void> updateSummary(Message newMsg) async {
+    // extract message
+    String msgSummary = newMsg.content;
+    String actor = (newMsg.isUser)? "user:" : "chatbot:";
+    // summarize msg
+    if(currentConversation.value.messages.length%5==0){
+      String notSummarizedMessages = _getLastMessagesFormatted(
+        currentConversation.value.messages,
+        5,
+        shared.relationship,
+      );
 
-      // Summarize ONLY the delta
-      final String newSummary = await summarizer.summarize(deltaText);
-
-      // Merge with existing summary (cheap way: append)
-      convo.summary = convo.summary.isEmpty
-          ? newSummary
-          : "${convo.summary}\n$newSummary";
-
-      convo.merges += 1;
-
-      // Keep only last maxRecent messages
-      convo.recent = convo.recent.sublist(cutoff);
-
-      // Occasionally recompress to prevent summary from growing too big
-      if (convo.merges % recompressEvery == 0) {
-        convo.summary = await summarizer.summarize(convo.summary);
+      String? result;
+      while(result==null){
+        print("generating summary");
+        result = await llm.generateResponse(prompt: "generate summary for this for contextual memory make it short but contains all the info: ${currentConversation.value.summary}, $notSummarizedMessages");
       }
+      currentConversation.value.summary=result;
+      print("summary : -----------------------------------------------------------------------------");
+      print(currentConversation.value.summary);
+    }else{
+      //add summarized msg to conversation summary
+      currentConversation.value.summary+=",${actor+msgSummary}";
+      print("last 5 messages formatted : ******************************************************");
+      print(_getLastMessagesFormatted(currentConversation.value.messages,
+        5,
+        shared.relationship,));
     }
   }
+  String _getLastMessagesFormatted(List<Message> messages, int count, String relationship) {
+    final lastMessages = messages.length <= count
+        ? messages
+        : messages.sublist(messages.length - count);
+    return lastMessages
+        .map((m) => m.isUser
+        ? 'user:${m.content}'
+        : '${relationship.isNotEmpty ? '$relationship:' : "ai:"}${m.content}')
+        .join(',');
+  }
 
-   */
 
   String buildPrompt({
     required String role,
@@ -169,11 +175,13 @@ class ProviderChat extends GetxController {
 
     // 3. Contextual summary
     if (summary != null && summary.isNotEmpty) {
-      buffer.writeln("\nConversation so far (summarized):\n$summary\n");
+      buffer.writeln(
+          "You have the following context to help you respond naturally if the user message bellow is relevant. Do not mention that it is a summary:\n$summary\n"
+      );
     }
 
     // 4. Current user message
-    buffer.writeln("User: $userMessage");
+    buffer.writeln("User message: $userMessage");
 
     return buffer.toString().trim();
   }

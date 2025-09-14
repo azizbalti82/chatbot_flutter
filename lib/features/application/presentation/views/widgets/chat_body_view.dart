@@ -8,7 +8,6 @@ import 'package:hugeicons_pro/hugeicons.dart';
 
 import '../../../../../core/services/getx_chat.dart';
 import '../../../../../core/services/getx_navigation.dart';
-import '../../data/message_model.dart';
 import 'package:lottie/lottie.dart';
 
 

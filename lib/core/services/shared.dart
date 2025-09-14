@@ -1,10 +1,10 @@
-import 'package:chatbot/features/application/presentation/data/conversation_model.dart';
-import 'package:chatbot/features/application/presentation/service/HiveService.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 
-import '../../features/llm model/service/secret_service.dart';
-import '../../features/llm model/service/shared_preferences_service.dart';
+import '../../features/application/domain/models/conversation_model.dart';
+import '../../features/application/domain/service/HiveService.dart';
+import '../../features/llm model/domain/service/secret_service.dart';
+import '../../features/llm model/domain/service/shared_preferences_service.dart';
 import 'getx_all.dart';
 import 'getx_chat.dart';
 
